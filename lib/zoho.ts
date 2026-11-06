@@ -1,0 +1,7 @@
+let cached:{token:string;until:number}|undefined;
+export async function zoho(path:string, pdf=false){
+ const required=['ZOHO_CLIENT_ID','ZOHO_CLIENT_SECRET','ZOHO_REFRESH_TOKEN','ZOHO_ORGANIZATION_ID'];if(required.some(k=>!process.env[k]))throw new Error('Zoho connection is not configured.');
+ if(!cached||cached.until<Date.now()){const response=await fetch(`${process.env.ZOHO_ACCOUNTS_URL||'https://accounts.zoho.com'}/oauth/v2/token`,{method:'POST',body:new URLSearchParams({grant_type:'refresh_token',client_id:process.env.ZOHO_CLIENT_ID!,client_secret:process.env.ZOHO_CLIENT_SECRET!,refresh_token:process.env.ZOHO_REFRESH_TOKEN!}),cache:'no-store'});const data=await response.json();if(!response.ok||!data.access_token)throw new Error('Zoho authentication failed. Check your OAuth credentials.');cached={token:data.access_token,until:Date.now()+3300000};}
+ const url=new URL(`${process.env.ZOHO_API_URL||'https://www.zohoapis.com'}/inventory/v1/${path}`);url.searchParams.set('organization_id',process.env.ZOHO_ORGANIZATION_ID!);
+ const response=await fetch(url,{headers:{Authorization:`Zoho-oauthtoken ${cached.token}`,Accept:pdf?'application/pdf':'application/json'},cache:'no-store'});if(!response.ok)throw new Error(`Zoho request failed (${response.status}).`);if(pdf)return response;const data=await response.json();if(data.code!==0)throw new Error('Zoho could not complete the request.');return data;
+}

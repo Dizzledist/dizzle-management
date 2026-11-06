@@ -1,0 +1,2 @@
+import {zoho} from '@/lib/zoho';
+export async function GET(_:Request,{params}:{params:Promise<{id:string}>}){const {id}=await params;if(!/^\d+$/.test(id))return new Response('Invalid invoice',{status:400});try{const pdf=await zoho(`invoices/${id}`,true);return new Response(await pdf.arrayBuffer(),{headers:{'Content-Type':'application/pdf','Content-Disposition':`inline; filename="invoice-${id}.pdf"`,'Cache-Control':'private, no-store'}});}catch{return new Response('Unable to load invoice',{status:502});}}

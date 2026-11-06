@@ -1,0 +1,4 @@
+import {db} from '@/lib/db';
+import {sampleTables} from '@/lib/samples';
+import {sampleKey} from '@/lib/sample-parser';
+export async function POST(req:Request){if(req.headers.get('origin')!==new URL(req.url).origin)return new Response('Forbidden',{status:403});try{const {name,cost,currency='USD'}=await req.json();if(typeof currency!=='string'||!/^[A-Z]{3}$/.test(currency)||typeof name!=='string'||!name.trim()||name.length>1000||typeof cost!=='number'||!Number.isFinite(cost)||cost<0||cost>1e7)throw new Error('Enter a sample product and a valid non-negative unit cost.');await sampleTables();await db()`INSERT INTO sample_unit_costs(match_key,currency,name,cost) VALUES(${sampleKey(name)},${currency},${name.trim()},${cost}) ON CONFLICT(match_key,currency) DO UPDATE SET name=EXCLUDED.name,cost=EXCLUDED.cost,updated_at=NOW()`;return Response.json({ok:true});}catch(e){return Response.json({error:e instanceof Error?e.message:'Could not save sample cost.'},{status:400});}}
