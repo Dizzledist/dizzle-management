@@ -1,4 +1,5 @@
 export const INVOICE_START_DATE='2026-10-01';
+export const EXCLUDED_INVOICE_NUMBERS=new Set(['INV-003008']);
 export function invoiceEndDate(now:Date=new Date()){
  const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
  return today;
